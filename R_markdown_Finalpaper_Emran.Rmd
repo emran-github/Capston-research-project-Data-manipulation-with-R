@@ -1,0 +1,62 @@
+---
+title: "Project_Final_Rcode_Econ507"
+author: "Emran Hossain"
+date: "12/17/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+## Reading excel file pooldata
+```{r}
+library("readxl")
+pool_data=read_excel('F:/Career In USA/Fall Semester 2020/Econ-507/Project_presentation/pooldata.xlsx')
+#View(pool_data)
+```
+## ##Creating dummy variables for pool data
+```{r}
+pool_data$Sex=ifelse(pool_data$Sex=='Male'|pool_data$Sex=='male',1,0)
+pool_data$agegroup=cut(pool_data$Age, breaks=c(-1,19,40,60,100), labels=c('1','2','3','4'))
+pool_data$Area=ifelse(pool_data$Area=='urban'|pool_data$Area=='Urban',1,0)
+pool_data$Marital_status_dm=ifelse(pool_data$Marital_status=='Never married'|pool_data$Marital_status=='never married',1,0)
+pool_data$hh_edu_dm=ifelse(pool_data$hh_edu=='Bachelor'|pool_data$hh_edu=='Intermediate'|pool_data$hh_edu=='Master'|pool_data$hh_edu=='SLC',1,0)
+pool_data$Anyone_Consulted_dm=ifelse(pool_data$Anyone_Consulted=='Yes'|pool_data$Anyone_Consulted=='yes',1,0)
+pool_data$Cronic_illnes_dm=ifelse(pool_data$Cronic_illnes=='Yes'|pool_data$Cronic_illnes=='yes',1,0)
+pool_data$Ethnic_group_dm=ifelse(pool_data$Ethnic_group=='Brahman (hill)'|pool_data$Ethnic_group=='Brahman (terai)'|pool_data$Ethnic_group=='bramhin (hill)'|pool_data$Ethnic_group=='bramhin (terai)'|pool_data$Ethnic_group=='Chhetri',1,0)
+```
+
+##data sortout
+```{r}
+library(dplyr)
+pool_data$Marital_status_dm[is.na(pool_data$Marital_status_dm)]=1
+pool_data$hh_edu_dm[is.na(pool_data$hh_edu_dm)]=0
+pool_data=filter(pool_data,hh_Medi_Cost>=0)
+```
+
+## Kernal density plot
+```{r}
+d=density(pool_data$hh_Medi_Cost)
+plot(d, main="Kernel Density of Household healthcare expenditure")
+
+```
+## Regression Model
+```{r}
+Log_lm_model_pool1=lm(log(hh_Medi_Cost+1)~hh_size+Sex+factor(agegroup)+Area+Marital_status_dm+hh_edu_dm+Ethnic_group_dm+log(Gross_hhincome+1),pool_data)
+summary(Log_lm_model_pool1)
+```
+## Stargizer Output, Regression Model
+```{r}
+library(stargazer)
+stargazer(Log_lm_model_pool1,
+          title="Determinants of health care expenditure in Nepal",
+          dep.var.caption="Household Health Care Expenditure",
+         # covariate.labels= c("Household size","Sex","Agegroup","Urban People","Marital Status ","House Hold Education","Ethnic Group or Cast","Household yearly income"),
+          notes.lebel="Significant levels",
+          type='text',
+          out="pooled_crossection.txt")
+```
+
